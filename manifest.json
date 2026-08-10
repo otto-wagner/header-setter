@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Header Setter",
+  "version": "1.0.0",
+  "description": "Set custom HTTP headers per domain",
+  "homepage_url": "https://github.com/otto-wagner/header-setter",
+  "minimum_chrome_version": "102",
+  "permissions": ["declarativeNetRequest", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Header Setter",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  }
+}

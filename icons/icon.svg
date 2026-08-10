@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="blueSphere" cx="32%" cy="28%" r="78%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="50%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#163E9E" />
+    </radialGradient>
+  </defs>
+
+  <!-- Subtle depth while preserving toolbar readability. -->
+  <circle cx="64" cy="64" r="64" fill="url(#blueSphere)" />
+
+  <!-- Soft shape shadows -->
+  <g fill="none" stroke="#102E70" stroke-width="18" stroke-linecap="round" opacity="0.45" transform="translate(2, 3)">
+    <path d="M 40 24 L 40 104" />
+    <path d="M 40 64 L 88 64" />
+    <path d="M 88 24 L 88 104" />
+  </g>
+  <g fill="none" stroke="#102E70" stroke-width="10" stroke-linecap="round" opacity="0.45" transform="translate(2, 3)">
+    <path d="M 40 38 L 40 90" />
+    <path d="M 17 64 L 63 64" />
+  </g>
+
+  <!-- Coral-red H -->
+  <path d="M 40 24 L 40 104" fill="none" stroke="#FF5A36" stroke-width="18" stroke-linecap="round" />
+  <path d="M 40 64 L 88 64" fill="none" stroke="#FF5A36" stroke-width="18" stroke-linecap="round" />
+  <path d="M 88 24 L 88 104" fill="none" stroke="#FF5A36" stroke-width="18" stroke-linecap="round" />
+
+  <!-- Smaller white plus -->
+  <path d="M 40 38 L 40 90" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" />
+  <path d="M 17 64 L 63 64" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" />
+</svg>
