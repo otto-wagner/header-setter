@@ -1,0 +1,22 @@
+{
+    "version": "1.1.0",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/otto-wagner/header-setter/releases/download/v1.1.0/header-setter-proxy_1.1.0_windows_amd64.zip",
+            "bin": [
+                "header-setter-proxy.exe"
+            ],
+            "hash": "0c329d59dcd50e2dca12b10c4171c10211bd10230306e4f92aea18c5a271303b"
+        },
+        "arm64": {
+            "url": "https://github.com/otto-wagner/header-setter/releases/download/v1.1.0/header-setter-proxy_1.1.0_windows_arm64.zip",
+            "bin": [
+                "header-setter-proxy.exe"
+            ],
+            "hash": "c56c76de12c73cd58c4dca96e2d30b880588be709b63067c8c1368ff2862fe54"
+        }
+    },
+    "homepage": "https://github.com/otto-wagner/header-setter",
+    "license": "MIT",
+    "description": "Local CONNECT proxy for the Header Setter Chrome extension"
+}

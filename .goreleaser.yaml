@@ -1,0 +1,95 @@
+# Builds and publishes the local host-routing proxy. The Chrome extension itself
+# is not released here, it is loaded unpacked or installed from the Web Store.
+version: 2
+
+project_name: header-setter-proxy
+
+builds:
+  - id: header-setter-proxy
+    # The Go module lives in proxy/, the extension in the repository root.
+    dir: proxy
+    main: ./cmd/header-setter-proxy
+    binary: header-setter-proxy
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+
+# One macOS binary for Intel and Apple Silicon, so the formula does not have to
+# pick an architecture.
+universal_binaries:
+  - id: header-setter-proxy
+    ids:
+      - header-setter-proxy
+    replace: true
+
+archives:
+  - id: header-setter-proxy
+    ids:
+      - header-setter-proxy
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - LICENSE
+      - README.md
+      - proxy/README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  draft: false
+  prerelease: auto
+
+brews:
+  - name: header-setter-proxy
+    ids:
+      - header-setter-proxy
+    repository:
+      owner: otto-wagner
+      name: header-setter
+      branch: main
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: https://github.com/otto-wagner/header-setter
+    description: Local CONNECT proxy that routes a host to another host for the Header Setter Chrome extension
+    license: MIT
+    install: |
+      bin.install "header-setter-proxy"
+    test: |
+      assert_match "Routes selected hosts to a different target", shell_output("#{bin}/header-setter-proxy serve --help")
+
+scoops:
+  - name: header-setter-proxy
+    ids:
+      - header-setter-proxy
+    repository:
+      owner: otto-wagner
+      name: header-setter
+      branch: main
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    homepage: https://github.com/otto-wagner/header-setter
+    description: Local CONNECT proxy for the Header Setter Chrome extension
+    license: MIT

@@ -2,20 +2,56 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A simple, open-source Chrome extension (Manifest V3) to set custom HTTP request headers and cookies per domain.
+A simple, open-source browser extension (Manifest V3) for Chrome and Firefox to set custom HTTP request headers and cookies per domain.
 
 ![Header Setter popup screenshot](docs/screenshot.png)
 
 ## Installation
+
+### Chrome
 
 1. Clone or download this repository
 2. Open `chrome://extensions` in Chrome
 3. Enable **Developer mode** ("Entwicklermodus") (top right)
 4. Click **Load unpacked** ("Entpackte Erweiterung laden") and select the project folder
 
+### Firefox
+
+1. Grab the signed `.xpi` from the [releases page](https://github.com/otto-wagner/header-setter/releases)
+2. Open `about:addons` in Firefox
+3. Click the gear icon → **Install Add-on From File...** and select the downloaded `.xpi`
+
+Without signing (temporary, for development — removed on browser restart):
+
+1. Clone or download this repository
+2. Stage the extension with a Firefox-compatible background field (Firefox has no `background.service_worker` support in Manifest V3):
+   ```sh
+   mkdir -p dist
+   cp -r manifest.json src icons dist/
+   jq '.background = {"scripts": ["src/background.js"], "type": "module"}' manifest.json > dist/manifest.json
+   ```
+3. Open `about:debugging#/runtime/this-firefox` in Firefox
+4. Click **Load Temporary Add-on...** and select `dist/manifest.json`
+
+### Host routing proxy
+
+Setting headers and cookies works with the extension alone. Rewriting the Host header additionally requires `header-setter-proxy`:
+
+![host_header](docs/host.png)
+
+```sh
+brew tap otto-wagner/header-setter https://github.com/otto-wagner/header-setter
+brew install header-setter-proxy
+header-setter-proxy serve
+```
+
+On Windows, use Scoop instead: see [`proxy/README.md`](proxy/README.md#install).
+
 ## Permissions & privacy
 
 This extension does **not** collect, transmit, or share any data. All rules stay on your device in local browser storage. There is no remote server, analytics, or tracking of any kind — the full source is available in this repository for review.
+
+Host routing sends the routes to the proxy on `127.0.0.1:8900`, which runs on your own machine, binds to loopback only, and relays the routed connections without decrypting or logging their content.
 
 ## Support
 

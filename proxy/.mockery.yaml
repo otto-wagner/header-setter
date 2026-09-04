@@ -1,0 +1,12 @@
+template: testify
+dir: mocks
+pkgname: mocks
+filename: "{{ .InterfaceName | snakecase }}.go"
+structname: "Mock{{ .InterfaceName }}"
+packages:
+  github.com/otto-wagner/header-setter/proxy/internal/admin:
+    interfaces:
+      Store:
+  github.com/otto-wagner/header-setter/proxy/internal/tunnel:
+    interfaces:
+      Resolver:

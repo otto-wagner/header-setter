@@ -1,24 +1,37 @@
 {
   "manifest_version": 3,
   "name": "Header Setter",
-  "version": "1.0.0",
-  "description": "Set custom HTTP headers per domain",
+  "version": "1.2.0",
+  "description": "Set custom HTTP request headers and cookies per domain, including the forbidden Host header via a local companion proxy",
   "homepage_url": "https://github.com/otto-wagner/header-setter",
   "minimum_chrome_version": "102",
-  "permissions": ["declarativeNetRequest", "storage"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["declarativeNetRequest", "proxy", "storage"],
+  "host_permissions": ["<all_urls>", "http://127.0.0.1/*"],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_popup": "popup/popup.html",
+    "default_popup": "src/popup/popup.html",
     "default_title": "Header Setter",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "header-setter@otto-wagner.github.io",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   }
 }
