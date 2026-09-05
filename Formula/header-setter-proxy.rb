@@ -5,12 +5,12 @@
 class HeaderSetterProxy < Formula
   desc "Local CONNECT proxy that routes a host to another host for the Header Setter Chrome extension"
   homepage "https://github.com/otto-wagner/header-setter"
-  version "1.2.1"
+  version "1.2.2"
   license "MIT"
 
   on_macos do
-    url "https://github.com/otto-wagner/header-setter/releases/download/v1.2.1/header-setter-proxy_1.2.1_darwin_all.tar.gz"
-    sha256 "5905ad6c0220e2808a7cfd8e69e4aafb41ec27dfa342899f7304e182016b396f"
+    url "https://github.com/otto-wagner/header-setter/releases/download/v1.2.2/header-setter-proxy_1.2.2_darwin_all.tar.gz"
+    sha256 "db9505829a7f05fd6d54d0ea002ad57906ad197332cbb74618ee93ce00c828ea"
 
     define_method(:install) do
       bin.install "header-setter-proxy"
@@ -19,15 +19,15 @@ class HeaderSetterProxy < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/otto-wagner/header-setter/releases/download/v1.2.1/header-setter-proxy_1.2.1_linux_amd64.tar.gz"
-      sha256 "53a170084fa0f124844e382837389c111dea8de645103ca1093a7bdcee6284ad"
+      url "https://github.com/otto-wagner/header-setter/releases/download/v1.2.2/header-setter-proxy_1.2.2_linux_amd64.tar.gz"
+      sha256 "395754d43a677a3c3743bddc3ea42a2aa2951cbabaae3d8b821a66d4da7f2869"
       define_method(:install) do
         bin.install "header-setter-proxy"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/otto-wagner/header-setter/releases/download/v1.2.1/header-setter-proxy_1.2.1_linux_arm64.tar.gz"
-      sha256 "c637568a2f772a018eb35a58d8b51637eb1bdb46f8d665aeab893ec49f3374fd"
+      url "https://github.com/otto-wagner/header-setter/releases/download/v1.2.2/header-setter-proxy_1.2.2_linux_arm64.tar.gz"
+      sha256 "ee183da3024fbd911f195f76afd9c5ce837e99b41852dfc6cd6d57f16aa5c42c"
       define_method(:install) do
         bin.install "header-setter-proxy"
       end
