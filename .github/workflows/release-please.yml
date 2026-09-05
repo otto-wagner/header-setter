@@ -1,0 +1,24 @@
+name: Release Please
+
+# Maintains a standing "release PR" that bumps manifest.json's version and
+# accumulates a changelog from Conventional Commits on main. Merging that PR
+# creates the GitHub Release and pushes the matching vX.Y.Z tag, which in
+# turn triggers release.yml exactly as a manual tag push would.
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
