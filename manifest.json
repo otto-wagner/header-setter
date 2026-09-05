@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Header Setter",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Set custom HTTP request headers and cookies per domain, including the forbidden Host header via a local companion proxy",
   "homepage_url": "https://github.com/otto-wagner/header-setter",
   "minimum_chrome_version": "102",
