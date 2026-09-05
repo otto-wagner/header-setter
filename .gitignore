@@ -10,3 +10,7 @@ Thumbs.db
 *.zip
 *.crx
 *.pem
+
+# Go build output
+proxy/build/
+dist/

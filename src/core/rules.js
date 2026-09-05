@@ -1,7 +1,9 @@
 import { escapeRegex } from './domain.js';
 
-function buildRequestHeaders(group) {
-  const headerEntries = group.headers
+// Exported so the toolbar icon can ask the same question Chrome does: an empty
+// result means this domain currently modifies nothing, whatever is stored for it.
+export function buildRequestHeaders(group) {
+  const headerEntries = (group.headers || [])
     .filter((header) => header.enabled !== false)
     .map((header) => ({
       header: header.name,
@@ -38,8 +40,9 @@ export function applyRules(domainRules) {
             requestHeaders,
           },
           condition: {
-            // exact host match, no accidental subdomain expansion
-            regexFilter: `^https?://${escapeRegex(group.domain)}([:/]|$)`,
+            // The stored host and its www form, nothing else: no accidental
+            // subdomain expansion, but example.com also covers www.example.com.
+            regexFilter: `^https?://(www\\.)?${escapeRegex(group.domain)}([:/]|$)`,
             resourceTypes: [
               'main_frame', 'sub_frame', 'xmlhttprequest',
               'script', 'stylesheet', 'image', 'font', 'object', 'other',

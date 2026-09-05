@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
   <!-- Flat single-hue mark: the state is carried by the background colour alone, so
        the same silhouette stays recognisable at 16px in every state. -->
-  <rect width="128" height="128" rx="28" fill="#2563EB" />
+  <rect width="128" height="128" rx="28" fill="#16A34A" />
 
   <!-- Both stems and the crossbar share one colour, so the H reads as a single
        letter at 16px instead of three strokes. -->
