@@ -1,0 +1,52 @@
+@adminUrl = http://127.0.0.1:8900
+
+### Check that the proxy is running, how many routes it holds and why one failed
+GET {{adminUrl}}/health
+Accept: application/json
+
+### Read the current route table
+GET {{adminUrl}}/routes
+Accept: application/json
+
+### Replace the whole route table
+POST {{adminUrl}}/routes
+Content-Type: application/json
+
+{
+  "develop.example.com": "example.com",
+  "test.example.com": "example.com:8443"
+}
+
+### Remove every route
+POST {{adminUrl}}/routes
+Content-Type: application/json
+
+{}
+
+### Rejected: the body must be a JSON object of host/target pairs
+POST {{adminUrl}}/routes
+Content-Type: application/json
+
+["develop.example.com"]
+
+### Rejected: a target must be a string
+POST {{adminUrl}}/routes
+Content-Type: application/json
+
+{
+  "develop.example.com": 8443
+}
+
+### Rejected: unknown path
+GET {{adminUrl}}/unknown
+Accept: application/json
+
+### Rejected: unsupported method
+DELETE {{adminUrl}}/routes
+Accept: application/json
+
+### Preflight request the extension sends before a route update
+OPTIONS {{adminUrl}}/routes
+Origin: chrome-extension://abcdefghijklmnopabcdefghijklmnop
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: Content-Type

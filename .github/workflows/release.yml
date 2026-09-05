@@ -1,0 +1,284 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    name: GoReleaser
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # GoReleaser builds the changelog from the git history.
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: proxy/go.mod
+          cache-dependency-path: proxy/go.sum
+
+      - uses: goreleaser/goreleaser-action@v7
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  firefox:
+    name: Sign Firefox add-on
+    # Runs after GoReleaser so the .xpi attaches to the release it just
+    # created. Only triggered by the same tag push as GoReleaser — a failed
+    # run is retried via GitHub's "Re-run failed jobs", not a manual dispatch.
+    needs: goreleaser
+    if: needs.goreleaser.result == 'success'
+    runs-on: ubuntu-latest
+    # Packs the extension for Firefox and submits it as a *listed*
+    # (publicly searchable on addons.mozilla.org) .xpi via AMO. Listed
+    # add-ons go through Mozilla's human review before they go live, so a
+    # successful run here means "submitted for review", not "published".
+    #
+    # One-time setup (repo admin):
+    #   1. Create an API credential at
+    #      https://addons.mozilla.org/developers/addon/api/key/
+    #   2. Add two repository secrets (Settings → Secrets and variables →
+    #      Actions):
+    #        AMO_JWT_ISSUER = the "JWT issuer" (API key, starts with "user:")
+    #        AMO_JWT_SECRET = the "JWT secret"
+    #   3. Fill in the AMO listing (description, category, screenshots) on
+    #      addons.mozilla.org — required for listed add-ons.
+    env:
+      AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+      AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+    steps:
+      - name: Skip without AMO credentials
+        id: gate
+        run: |
+          if [ -z "$AMO_JWT_ISSUER" ] || [ -z "$AMO_JWT_SECRET" ]; then
+            echo "::notice::AMO_JWT_* secrets not configured — skipping Firefox signing."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.gate.outputs.run == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: "22"
+
+      - name: Read version from manifest
+        if: steps.gate.outputs.run == 'true'
+        id: manifest
+        run: echo "version=$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+
+      # A mismatched tag must not produce a signed XPI under the wrong version.
+      - name: Verify tag matches manifest version
+        if: steps.gate.outputs.run == 'true'
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "${TAG#v}" != "${{ steps.manifest.outputs.version }}" ]; then
+            echo "::error::tag $TAG does not match manifest.json version ${{ steps.manifest.outputs.version }}"
+            exit 1
+          fi
+
+      # web-ext lints and packs from a clean directory, so stage only the
+      # runtime files the extension actually ships.
+      - name: Stage extension files
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          mkdir -p dist
+          cp -r manifest.json src icons dist/
+          # Firefox has no background.service_worker support in Manifest V3
+          # (Mozilla bug 1573659); it runs an event page instead. The committed
+          # manifest is Chrome-canonical, so swap the background block here for
+          # a warning-free signed .xpi.
+          jq '.background = {"scripts": ["src/background.js"], "type": "module"}' manifest.json > dist/manifest.json
+
+      # AMO rejects a version it already holds ("Version X already exists").
+      # That is a re-run of an already-submitted tag, not a release failure,
+      # so only that conflict is treated as a no-op.
+      - name: Submit (listed) to AMO for review
+        id: sign
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          set +e
+          out=$(npx --yes web-ext@10 sign \
+            --channel=listed \
+            --approval-timeout 0 \
+            --amo-metadata amo-metadata.json \
+            --source-dir dist \
+            --artifacts-dir web-ext-artifacts \
+            --api-key "$AMO_JWT_ISSUER" \
+            --api-secret "$AMO_JWT_SECRET" 2>&1)
+          code=$?
+          echo "$out"
+          if [ $code -ne 0 ]; then
+            if echo "$out" | grep -qiE "Version .* already exists"; then
+              echo "::notice::AMO already has this version — nothing to submit."
+              echo "signed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            exit $code
+          fi
+          # Listed add-ons are reviewed by a human before Mozilla signs them,
+          # so --approval-timeout 0 makes this step submit and return right
+          # away instead of blocking the runner for the review's duration
+          # (hours to days). The signed .xpi therefore usually doesn't exist
+          # yet at this point.
+          if compgen -G "web-ext-artifacts/*.xpi" > /dev/null; then
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Submitted to AMO for review — once Mozilla approves it, download the signed .xpi from addons.mozilla.org and attach it to the GitHub release manually."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Attach signed .xpi to release
+        if: steps.sign.outputs.signed == 'true'
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: web-ext-artifacts/*.xpi
+
+  chrome:
+    name: Publish to Chrome Web Store
+    needs: goreleaser
+    if: needs.goreleaser.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    # Publishes the extension to the Chrome Web Store — but only once the five
+    # CWS_* repo secrets exist. Until then every step is skipped, so it never
+    # fails a release.
+    #
+    # One-time setup (repo admin):
+    #   1. Chrome Web Store developer account ($5 one-time fee) and publish v1
+    #      manually once, to get the item/extension ID.
+    #   2. Google Cloud Console → enable the Chrome Web Store API → OAuth
+    #      Desktop client → generate a refresh token.
+    #   3. Find the publisher ID in the Developer Dashboard under
+    #      Publisher → Settings.
+    #   4. Add five repository secrets (Settings → Secrets and variables →
+    #      Actions): CWS_EXTENSION_ID, CWS_PUBLISHER_ID, CWS_CLIENT_ID,
+    #      CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN.
+    #
+    # Talks to the Chrome Web Store REST API (V2, since the V1 API was
+    # retired in October 2025) directly with curl instead of a third-party
+    # marketplace action: those are resolved at job setup even when their
+    # step is `if`-skipped, so a vanished action repo would fail the whole
+    # job even with no secrets configured.
+    env:
+      CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+      CWS_PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+      CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+      CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+      CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+    steps:
+      - name: Skip without CWS credentials
+        id: gate
+        run: |
+          if [ -z "$CWS_EXTENSION_ID" ] || [ -z "$CWS_PUBLISHER_ID" ] || \
+             [ -z "$CWS_CLIENT_ID" ] || [ -z "$CWS_CLIENT_SECRET" ] || \
+             [ -z "$CWS_REFRESH_TOKEN" ]; then
+            echo "::notice::CWS_* secrets not configured — skipping Chrome Web Store publish."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.gate.outputs.run == 'true'
+
+      - name: Build Chrome zip
+        if: steps.gate.outputs.run == 'true'
+        run: zip -r "header-setter-chrome.zip" manifest.json src icons -x "*.DS_Store"
+
+      - name: Upload and publish extension
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          # Runs curl with a status-code check; prints the body on success,
+          # exits with a readable ::error:: annotation otherwise. Replaces
+          # `curl -f`, which discards the response body needed to diagnose
+          # a failure.
+          #
+          # `|| { ...; exit 1; }` (rather than a bare assignment) is required
+          # here: under `set -e`, an unguarded `response=$(curl ...)` aborts
+          # the whole script the instant curl itself fails at the transport
+          # level (DNS/timeout/TLS) — before the $status check below ever
+          # runs — printing nothing at all.
+          #
+          # Every call() invocation below is itself wrapped in `x=$(call ...)`,
+          # which captures the function's entire stdout. An `echo` for the
+          # error message would therefore vanish into that captured (and on
+          # error, discarded) variable instead of reaching the log — so the
+          # error messages here are written to stderr (`>&2`), which command
+          # substitution does not capture but GitHub still renders as an
+          # annotation.
+          call() {
+            local label="$1"; shift
+            local response status body
+            response=$(curl -sS -w '\n%{http_code}' "$@") || {
+              echo "::error::$label request failed (curl exit $?)" >&2
+              exit 1
+            }
+            status="${response##*$'\n'}"
+            body="${response%$'\n'*}"
+            if [ "$status" != "200" ]; then
+              echo "::error::$label failed ($status): $body" >&2
+              exit 1
+            fi
+            echo "$body"
+          }
+
+          token_body=$(call "OAuth token exchange" -X POST https://oauth2.googleapis.com/token \
+            -d client_id="$CWS_CLIENT_ID" \
+            -d client_secret="$CWS_CLIENT_SECRET" \
+            -d refresh_token="$CWS_REFRESH_TOKEN" \
+            -d grant_type=refresh_token)
+          token=$(echo "$token_body" | jq -er .access_token)
+
+          # Google is allowed to rotate the refresh token on any refresh
+          # (RFC 6749 §6); this doesn't normally happen for Desktop-app OAuth
+          # clients, but if it ever does, the old CWS_REFRESH_TOKEN secret can
+          # stop working silently. Surface it instead of hiding it.
+          if [ "$(echo "$token_body" | jq -r 'has("refresh_token")')" = "true" ]; then
+            echo "::warning::Google returned a NEW refresh_token — update the CWS_REFRESH_TOKEN secret with it, the old one may stop working."
+          fi
+
+          base="https://chromewebstore.googleapis.com/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID"
+
+          upload=$(call "Upload" -X POST --oauth2-bearer "$token" \
+            -T header-setter-chrome.zip \
+            "https://chromewebstore.googleapis.com/upload/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:upload")
+          state=$(echo "$upload" | jq -r .uploadState)
+
+          # A large package uploads asynchronously; poll fetchStatus until it settles.
+          while [ "$state" = "IN_PROGRESS" ]; do
+            sleep 10
+            upload=$(call "fetchStatus" --oauth2-bearer "$token" "$base:fetchStatus")
+            state=$(echo "$upload" | jq -r .lastAsyncUploadState)
+          done
+          if [ "$state" != "SUCCEEDED" ]; then
+            echo "::error::upload did not succeed: $upload"
+            exit 1
+          fi
+
+          publish=$(call "Publish" -X POST --oauth2-bearer "$token" \
+            -H "Content-Length: 0" "$base:publish")
+          state=$(echo "$publish" | jq -r .state)
+          case "$state" in
+            PENDING_REVIEW|PUBLISHED|PUBLISHED_TO_TESTERS|STAGED) ;;
+            *)
+              echo "::error::publish did not succeed: $publish"
+              exit 1
+              ;;
+          esac
+
