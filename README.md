@@ -6,34 +6,45 @@ A simple, open-source browser extension (Manifest V3) for Chrome and Firefox to 
 
 ![Header Setter popup screenshot](docs/screenshot.png)
 
-## Installation
+## Extensions
+
+Install from the official stores — recommended for most users, since it's also the only way to receive automatic updates.
+
+- **Chrome**: https://chromewebstore.google.com/detail/header-setter/hobhlonbmogpejnjainlmbmgfabhglha
+- **Firefox**: https://addons.mozilla.org/de/firefox/addon/c6a223e979eb44a18489/
+
+## Local installation
+
+For development, or to try a version before it reaches the store.
 
 ### Chrome
 
-1. Clone or download this repository
-2. Open `chrome://extensions` in Chrome
-3. Enable **Developer mode** ("Entwicklermodus") (top right)
-4. Click **Load unpacked** ("Entpackte Erweiterung laden") and select the project folder
+1. Clone this repository
+2. Open `chrome://extensions`
+3. Enable **Developer mode** (top right)
+4. Click **Load unpacked** and select the project folder
 
 ### Firefox
 
-1. Grab the signed `.xpi` from the [releases page](https://github.com/otto-wagner/header-setter/releases)
-2. Open `about:addons` in Firefox
+A signed `.xpi` is attached to the [releases page](https://github.com/otto-wagner/header-setter/releases) once Mozilla approves a new version — new submissions await review first, so the latest one may not be there yet.
+
+1. Grab the signed `.xpi` from the releases page
+2. Open `about:addons`
 3. Click the gear icon → **Install Add-on From File...** and select the downloaded `.xpi`
 
 Without signing (temporary, for development — removed on browser restart):
 
-1. Clone or download this repository
+1. Clone this repository
 2. Stage the extension with a Firefox-compatible background field (Firefox has no `background.service_worker` support in Manifest V3):
    ```sh
    mkdir -p dist
    cp -r manifest.json src icons dist/
    jq '.background = {"scripts": ["src/background.js"], "type": "module"}' manifest.json > dist/manifest.json
    ```
-3. Open `about:debugging#/runtime/this-firefox` in Firefox
+3. Open `about:debugging#/runtime/this-firefox`
 4. Click **Load Temporary Add-on...** and select `dist/manifest.json`
 
-### Host routing proxy
+## Host routing proxy
 
 Setting headers and cookies works with the extension alone. Rewriting the Host header additionally requires `header-setter-proxy`:
 
