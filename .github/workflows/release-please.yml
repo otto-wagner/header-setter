@@ -22,3 +22,7 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          # A tag created via the default GITHUB_TOKEN does not trigger other
+          # workflows (GitHub's loop-prevention). release.yml only starts on
+          # tag pushes, so a PAT is required here to make that tag "external".
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
