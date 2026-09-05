@@ -214,17 +214,25 @@ jobs:
           # the whole script the instant curl itself fails at the transport
           # level (DNS/timeout/TLS) — before the $status check below ever
           # runs — printing nothing at all.
+          #
+          # Every call() invocation below is itself wrapped in `x=$(call ...)`,
+          # which captures the function's entire stdout. An `echo` for the
+          # error message would therefore vanish into that captured (and on
+          # error, discarded) variable instead of reaching the log — so the
+          # error messages here are written to stderr (`>&2`), which command
+          # substitution does not capture but GitHub still renders as an
+          # annotation.
           call() {
             local label="$1"; shift
             local response status body
             response=$(curl -sS -w '\n%{http_code}' "$@") || {
-              echo "::error::$label request failed (curl exit $?)"
+              echo "::error::$label request failed (curl exit $?)" >&2
               exit 1
             }
             status="${response##*$'\n'}"
             body="${response%$'\n'*}"
             if [ "$status" != "200" ]; then
-              echo "::error::$label failed ($status): $body"
+              echo "::error::$label failed ($status): $body" >&2
               exit 1
             fi
             echo "$body"
