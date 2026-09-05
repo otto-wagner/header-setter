@@ -114,6 +114,7 @@ jobs:
           out=$(npx --yes web-ext@10 sign \
             --channel=listed \
             --approval-timeout 0 \
+            --amo-metadata amo-metadata.json \
             --source-dir dist \
             --artifacts-dir web-ext-artifacts \
             --api-key "$AMO_JWT_ISSUER" \
@@ -207,10 +208,19 @@ jobs:
           # exits with a readable ::error:: annotation otherwise. Replaces
           # `curl -f`, which discards the response body needed to diagnose
           # a failure.
+          #
+          # `|| { ...; exit 1; }` (rather than a bare assignment) is required
+          # here: under `set -e`, an unguarded `response=$(curl ...)` aborts
+          # the whole script the instant curl itself fails at the transport
+          # level (DNS/timeout/TLS) — before the $status check below ever
+          # runs — printing nothing at all.
           call() {
             local label="$1"; shift
             local response status body
-            response=$(curl -sS -w '\n%{http_code}' "$@")
+            response=$(curl -sS -w '\n%{http_code}' "$@") || {
+              echo "::error::$label request failed (curl exit $?)"
+              exit 1
+            }
             status="${response##*$'\n'}"
             body="${response%$'\n'*}"
             if [ "$status" != "200" ]; then
