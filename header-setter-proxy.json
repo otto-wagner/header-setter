@@ -1,19 +1,19 @@
 {
-    "version": "1.2.2",
+    "version": "1.5.0",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/otto-wagner/header-setter/releases/download/v1.2.2/header-setter-proxy_1.2.2_windows_amd64.zip",
+            "url": "https://github.com/otto-wagner/header-setter/releases/download/v1.5.0/header-setter-proxy_1.5.0_windows_amd64.zip",
             "bin": [
                 "header-setter-proxy.exe"
             ],
-            "hash": "ce3e50880de4b37246902531a4038f735c0d79c10ba477a88c388c778ade8c99"
+            "hash": "e3653afa972fac83d6a378f42d9511f1fd0168043c01af9bee3c09c7949d6af5"
         },
         "arm64": {
-            "url": "https://github.com/otto-wagner/header-setter/releases/download/v1.2.2/header-setter-proxy_1.2.2_windows_arm64.zip",
+            "url": "https://github.com/otto-wagner/header-setter/releases/download/v1.5.0/header-setter-proxy_1.5.0_windows_arm64.zip",
             "bin": [
                 "header-setter-proxy.exe"
             ],
-            "hash": "c18a730004e967cb9135d239ca441cb4a3ba2417fd1948a90c234671d823a335"
+            "hash": "fcb404bda25b58db107458c1e7d1a82170acfd285b5ed442f542d8c668a1918f"
         }
     },
     "homepage": "https://github.com/otto-wagner/header-setter",
