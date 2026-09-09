@@ -11,5 +11,5 @@ Serves the small HTTP API the Header Setter extension talks to.
 
 The API has no credentials; it answers with CORS headers so the extension can
 reach it from its popup and service worker, but only serves a browser `Origin`
-that is `chrome-extension://`. It must therefore only ever be bound to a
-loopback address, which the configuration enforces.
+that is `chrome-extension://` or `moz-extension://`. It must therefore only
+ever be bound to a loopback address, which the configuration enforces.

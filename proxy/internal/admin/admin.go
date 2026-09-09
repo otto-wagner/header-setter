@@ -202,8 +202,8 @@ func (s *Server) writeJSON(ctx context.Context, w http.ResponseWriter, status in
 	}
 }
 
-// withCORS allows chrome-extension:// origins (popup and service worker) and
-// rejects everyone else.
+// withCORS allows chrome-extension:// and moz-extension:// origins (popup and
+// service worker, on Chrome and Firefox respectively) and rejects everyone else.
 func (s *Server) withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
@@ -238,8 +238,9 @@ func (s *Server) withCORS(next http.Handler) http.Handler {
 
 // originAllowed reports whether a request may use the API. No Origin header
 // means a non-browser caller such as the CLI, which is always allowed.
-// Otherwise, the origin must be a chrome-extension:// origin; the browser sets
-// this header itself, so a page cannot forge it to add routes.
+// Otherwise, the origin must be a chrome-extension:// or moz-extension://
+// origin; the browser sets this header itself, so a page cannot forge it to
+// add routes.
 func (s *Server) originAllowed(origin string) bool {
 	if origin == "" {
 		return true
@@ -250,13 +251,16 @@ func (s *Server) originAllowed(origin string) bool {
 }
 
 func extensionID(origin string) (string, bool) {
-	const scheme = "chrome-extension://"
-
-	id, found := strings.CutPrefix(origin, scheme)
-	if !found || id == "" || strings.ContainsAny(id, ":/") {
-		return "", false
+	for _, scheme := range [...]string{"chrome-extension://", "moz-extension://"} {
+		id, found := strings.CutPrefix(origin, scheme)
+		if found {
+			if id == "" || strings.ContainsAny(id, ":/") {
+				return "", false
+			}
+			return id, true
+		}
 	}
-	return id, true
+	return "", false
 }
 
 // requiresJSON reports whether the request carries a JSON body. Requiring it

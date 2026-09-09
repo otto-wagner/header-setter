@@ -147,6 +147,20 @@ func TestServer_RoutesPreflight(t *testing.T) {
 	assert.Equal(t, "Content-Type", response.Header().Get("Access-Control-Allow-Headers"))
 }
 
+// TestServer_RoutesPreflightAcceptsAFirefoxExtensionOrigin pins that Firefox's
+// moz-extension:// origin is granted CORS just like Chrome's chrome-extension://,
+// since the same extension runs on both browsers.
+func TestServer_RoutesPreflightAcceptsAFirefoxExtensionOrigin(t *testing.T) {
+	origin := "moz-extension://" + testExtension
+	request := httptest.NewRequest(http.MethodOptions, "/routes", nil)
+	request.Header.Set("Origin", origin)
+
+	response := serve(newHandler(mocks.NewMockStore(t)), request)
+
+	assert.Equal(t, http.StatusNoContent, response.Code)
+	assert.Equal(t, origin, response.Header().Get("Access-Control-Allow-Origin"))
+}
+
 // A request without an Origin header is the local command line, which needs no
 // CORS grant at all, and answering it with one would only widen the API.
 func TestServer_RoutesPreflightWithoutAnOrigin(t *testing.T) {
@@ -291,6 +305,8 @@ func TestServer_RejectsAWebPageOrigin(t *testing.T) {
 		"null",
 		"chrome-extension://",
 		"chrome-extension://abcdefghijklmnopabcdefghijklmnop/popup.html",
+		"moz-extension://",
+		"moz-extension://abcdefghijklmnopabcdefghijklmnop/popup.html",
 	}
 
 	for _, origin := range tests {
