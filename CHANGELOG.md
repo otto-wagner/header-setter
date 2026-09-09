@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/otto-wagner/header-setter/compare/v1.5.0...v1.5.1) (2026-09-09)
+
+
+### Bug Fixes
+
+* **admin:** allow moz-extension:// origins for Firefox CORS ([870d5ca](https://github.com/otto-wagner/header-setter/commit/870d5ca099f7cfed3b4386ded3f41ef08f05acd2))
+
 ## [1.5.0](https://github.com/otto-wagner/header-setter/compare/v1.3.0...v1.5.0) (2026-09-05)
 
 
