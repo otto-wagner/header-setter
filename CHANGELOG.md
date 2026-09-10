@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2](https://github.com/otto-wagner/header-setter/compare/v1.5.1...v1.5.2) (2026-09-09)
+
+
+### Bug Fixes
+
+* **popup:** correct brew tap name in install command ([767a89c](https://github.com/otto-wagner/header-setter/commit/767a89c0ea8ab0e82e47368c9d516514682e0e33))
+
 ## [1.5.1](https://github.com/otto-wagner/header-setter/compare/v1.5.0...v1.5.1) (2026-09-09)
 
 
