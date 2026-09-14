@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.3](https://github.com/otto-wagner/header-setter/compare/v1.5.2...v1.5.3) (2026-09-14)
+
+
+### Bug Fixes
+
+* **background:** apply route changes immediately on Firefox ([8f5bb55](https://github.com/otto-wagner/header-setter/commit/8f5bb55e6136121f93fc042f786f7d2328153d97))
+* **proxy:** require tap and trust before installing header-setter-proxy ([de304c5](https://github.com/otto-wagner/header-setter/commit/de304c59b95d1059084ddd9948b1dae0180e00db))
+
 ## [1.5.2](https://github.com/otto-wagner/header-setter/compare/v1.5.1...v1.5.2) (2026-09-09)
 
 
