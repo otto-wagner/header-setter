@@ -52,6 +52,7 @@ Setting headers and cookies works with the extension alone. Rewriting the Host h
 
 ```sh
 brew tap otto-wagner/header-setter https://github.com/otto-wagner/header-setter
+brew trust --formula otto-wagner/header-setter/header-setter-proxy
 brew install header-setter-proxy
 header-setter-proxy serve
 ```

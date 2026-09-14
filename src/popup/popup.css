@@ -414,8 +414,8 @@ button.danger:hover {
   background: rgba(120, 53, 15, 0.14);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
-  white-space: nowrap;
-  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 [data-theme="dark"] .command {

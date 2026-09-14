@@ -34,14 +34,17 @@ function externalLink(href, text) {
 }
 
 // A command the user has to run in a terminal, with a copy button, because typing a
-// Homebrew tap path by hand from a popup is where this otherwise fails.
+// Homebrew tap path by hand from a popup is where this otherwise fails. Chained
+// commands are shown one `&&` step per line so they wrap readably in the narrow
+// popup instead of needing horizontal scrolling; the clipboard still gets the
+// original single-line command, unchanged.
 function commandRow(command) {
   const row = document.createElement('div');
   row.className = 'command-row';
 
   const pre = document.createElement('code');
   pre.className = 'command';
-  pre.textContent = command;
+  pre.textContent = command.replaceAll(' && ', ' &&\n');
   row.appendChild(pre);
 
   const copy = document.createElement('button');

@@ -24,6 +24,7 @@ macOS or Linux via Homebrew:
 
 ```sh
 brew tap otto-wagner/header-setter https://github.com/otto-wagner/header-setter
+brew trust --formula otto-wagner/header-setter/header-setter-proxy
 brew install header-setter-proxy
 ```
 

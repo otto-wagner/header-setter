@@ -14,7 +14,9 @@ const isFirefox = typeof browser !== 'undefined' && !!browser.proxy?.onRequest;
 export const PROXY_PORT = 8899;
 export const ADMIN_PORT = 8900;
 
-export const INSTALL_COMMAND = 'brew install otto-wagner/header-setter/header-setter-proxy';
+export const INSTALL_COMMAND = 'brew tap otto-wagner/header-setter https://github.com/otto-wagner/header-setter'
+  + ' && brew trust --formula otto-wagner/header-setter/header-setter-proxy'
+  + ' && brew install header-setter-proxy';
 export const START_COMMAND = 'header-setter-proxy serve';
 
 // The proxy's own README: install, run, flags and troubleshooting. A popup has no
