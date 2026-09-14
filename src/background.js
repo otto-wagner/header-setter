@@ -2,9 +2,11 @@
 // terminated after a short idle period and keeps no state of its own:
 //
 // 1. Re-apply the stored host routes, so routing survives an extension reload, a
-//    browser restart and a suspended worker. Chrome drops the PAC script
-//    whenever the extension is unloaded, and the proxy loses its route table
-//    whenever it is restarted, so both have to be set up again from storage.
+//    browser restart and a suspended worker, and so a route edit takes effect
+//    immediately on Firefox (see the storage.onChanged listener below). Chrome
+//    drops the PAC script whenever the extension is unloaded, and the proxy
+//    loses its route table whenever it is restarted, so both have to be set up
+//    again from storage.
 // 2. Keep the toolbar icon in sync with what is actually in effect per tab.
 import {
   DISABLED_DOMAINS_KEY,
@@ -53,8 +55,13 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 });
 
 // Editing a rule or a route, or flipping the master switch, changes the state of
-// every open tab. The popup applies the change itself; this keeps the icons right
-// when the popup is closed before its own work finishes.
+// every open tab. The popup applies the change itself, but on Firefox that only
+// updates the popup's own in-memory route cache (see routing.js) — the listener
+// that actually intercepts requests lives in this persistent background script,
+// so it needs its own applyAll() here or a new route stays dead until Firefox is
+// restarted. Chrome does not need this for its own routing (chrome.proxy.settings
+// is a real browser-level setting the popup already sets directly), but re-running
+// it here is harmless and keeps rule/proxy state consistent either way.
 chrome.storage.onChanged.addListener(async (changes, areaName) => {
   if (areaName !== 'local') return;
   const watched = [
@@ -65,6 +72,7 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
     DISABLED_ROUTES_KEY,
   ];
   if (!watched.some((key) => changes[key])) return;
+  await applyAll();
   await refreshAllTabs();
 });
 
