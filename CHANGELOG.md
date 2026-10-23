@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.4](https://github.com/otto-wagner/header-setter/compare/v1.5.3...v1.5.4) (2026-10-23)
+
+
+### Bug Fixes
+
+* **cookies:** append configured cookies instead of replacing them ([4b00fb2](https://github.com/otto-wagner/header-setter/commit/4b00fb2f497265fcf191abfed3a99720325dbe89))
+
 ## [1.5.3](https://github.com/otto-wagner/header-setter/compare/v1.5.2...v1.5.3) (2026-09-14)
 
 
