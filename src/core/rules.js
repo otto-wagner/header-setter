@@ -14,7 +14,7 @@ export function buildRequestHeaders(group) {
   const enabledCookies = (group.cookies || []).filter((cookie) => cookie.enabled !== false);
   const cookieEntry = enabledCookies.length > 0 ? [{
     header: 'Cookie',
-    operation: 'set',
+    operation: 'append',
     value: enabledCookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; '),
   }] : [];
 
